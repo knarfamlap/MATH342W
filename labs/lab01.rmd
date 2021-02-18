@@ -167,28 +167,40 @@ x_3_ord
 * Convert this variable into three binary variables without any information loss and put them into a data matrix.
 
 ```{r}
-#TO-DO
+x_3_infraction = as.integer(x_3 == "infraction") 
+x_3_misdimeanor = as.integer(x_3 == "misdimeanor")
+x_3_felony = as.integer(x_3 == "felony") 
+
+X = cbind(x_3_infraction, x_3_misdimeanor, x_3_felony) # concatenate column wise
+
+cols = levels(x_3)[1:3] # get the first three columns
+X = matrix(X, nrow=length(x_3), ncol=length(cols)) # convert into matrix
+colnames(X) = cols # set column names
+
+head(X) # print
 ```
 
 * What should the sum of each row be (in English)? 
 
-#TO-DO
+The sum of each row should sum crimes an observation has. It should result in a vector.
 
 Verify that. 
 
 
 ```{r}
-#TO-DO
+row_counts = rowSums(X, dims=1)
+row_counts
 ```
 
 * How should the column sum look (in English)? 
 
-#TO-DO
+It should be a vector with the size of the number of columns
 
 Verify that.
 
 ```{r}
-#TO-DO
+col_counts = colSums(X, dims=1)
+col_counts
 ```
 
 * Generate a matrix with 100 rows where the first column is realization from a normal with mean 17 and variance 38, the second column is uniform between -10 and 10, the third column is poisson with mean 6, the fourth column in exponential with lambda of 9, the fifth column is binomial with n = 20 and p = 0.12 and the sixth column is a binary variable with exactly 24% 1's dispersed randomly. Name the rows the entries of the `fake_first_names` vector.
@@ -212,14 +224,25 @@ fake_first_names = c(
   "Landon", "David", "Christian", "Andrew", "Brayden", "John", 
   "Lincoln"
 )
+norm = rnorm(n=100, mean=17, sd=sqrt(38))
+unif = runif(n=100, min=-10, max=10)
+pois = rpois(n=100, lambda=6)
+exp = rexp(n=100, rate=9)
+binom = rbinom(n=20, size=1, p=0.12)
+rand = rbinom(n=100, size=1, p=0.24)
+cols = c('norm', 'unif', 'pois', 'exp', 'binom', 'binary')
 
-#TO-DO
+X = cbind(norm, unif, pois, exp, binom, rand)
+X = matrix(X, nrow=100, ncol=6)
+rownames(X) = fake_first_names
+colnames(X) = cols
+head(X)
 ```
 
 * Create a data frame of the same data as above except make the binary variable a factor "DOMESTIC" vs "FOREIGN" for 0 and 1 respectively. Use RStudio's `View` function to ensure this worked as desired.
 
 ```{r}
-#TO-DO
+factor(X[,6], levels=c('DOMESTIC' , "FOREIGN"), order=TRUE)
 ```
 
 * Print out a table of the binary variable. Then print out the proportions of "DOMESTIC" vs "FOREIGN".
