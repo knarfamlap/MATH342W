@@ -242,37 +242,49 @@ head(X)
 * Create a data frame of the same data as above except make the binary variable a factor "DOMESTIC" vs "FOREIGN" for 0 and 1 respectively. Use RStudio's `View` function to ensure this worked as desired.
 
 ```{r}
-factor(X[,6], levels=c('DOMESTIC' , "FOREIGN"), order=TRUE)
+X = data.frame(
+  norm = X[, "norm"],
+  unif = X[, "unif"], 
+  pois = X[, "pois"],
+  exp = X[, "exp"], 
+  binom = X[, "binom"],
+  binary = X[, "binary"]
+)
+X$binary = factor(X$binary, labels=c("DOMESTIC", "FOREIGN"))
+View(X)
 ```
 
 * Print out a table of the binary variable. Then print out the proportions of "DOMESTIC" vs "FOREIGN".
 
 ```{r}
-#TO-DO
+table(X$binary)
 ```
 
 Print out a summary of the whole dataframe.
 
 ```{r}
-#TO-DO
+summary(X)
 ```
 
 * Let `n = 50`. Create a n x n matrix `R` of exactly 50% entries 0's, 25% 1's 25% 2's. These values should be in random locations.
 
 ```{r}
-#TO-DO
+n = 50
+R = matrix(sample(c(0, 1, 2), size=n * n, prob=c(0.5, 0.25, 0.25), replace=TRUE), nrow=n, ncol=n)
+head(R)
 ```
 
 * Randomly punch holes (i.e. `NA`) values in this matrix so that an each entry is missing with probability 30%.
 
 ```{r}
-#TO-DO
+R = matrix(lapply(R, function(x) x[sample(c(TRUE, NA), size=length(x), prob=c(0.70, 0.30), replace=TRUE) ]), nrow=n, ncol=n)
+R
 ```
 
 * Sort the rows in matrix `R` by the largest row sum to lowest. Be careful about the NA's!
 
 ```{r}
-#TO-DO
+
 ```
 
 * We will now learn the `apply` function. This is a handy function that saves writing for loops which should be eschewed in R. Use the apply function to compute a vector whose entries are the standard deviation of each row. Use the apply function to compute a vector whose entries are the standard deviation of each column. Be careful about the NA's! This should be one line.
