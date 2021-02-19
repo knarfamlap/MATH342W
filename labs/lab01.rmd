@@ -270,7 +270,7 @@ summary(X)
 
 ```{r}
 n = 50
-R = matrix(sample(c(0, 1, 2), size=n * n, prob=c(0.5, 0.25, 0.25), replace=TRUE), nrow=n, ncol=n)
+R = matrix(sample(0:2, size=n * n, prob=c(0.5, 0.25, 0.25), replace=TRUE), nrow=n, ncol=n)
 head(R)
 ```
 
@@ -278,31 +278,33 @@ head(R)
 
 ```{r}
 R = matrix(lapply(R, function(x) x[sample(c(TRUE, NA), size=length(x), prob=c(0.70, 0.30), replace=TRUE) ]), nrow=n, ncol=n)
-R
+head(R)
 ```
 
 * Sort the rows in matrix `R` by the largest row sum to lowest. Be careful about the NA's!
 
 ```{r}
-
+R = sort(na.omit(R), 0, decreasing=TRUE, na.last=TRUE)
 ```
 
 * We will now learn the `apply` function. This is a handy function that saves writing for loops which should be eschewed in R. Use the apply function to compute a vector whose entries are the standard deviation of each row. Use the apply function to compute a vector whose entries are the standard deviation of each column. Be careful about the NA's! This should be one line.
 
 ```{r}
-#TO-DO
+sd_fun = function(x) sd(na.exclude(x))
+R_row_sd = apply(R, 2, sd_fun) # sd for rows
+R_col_sd = apply(R, 2, sd_fun)
 ```
 
 * Use the `apply` function to compute a vector whose entries are the count of entries that are 1 or 2 in each column. This should be one line.
 
 ```{r}
-#TO-DO
+
 ```
 
 * Use the `split` function to create a list whose keys are the column number and values are the vector of the columns. Look at the last example in the documentation `?split`.
 
 ```{r}
-#TO-DO
+?split
 ```
 
 * In one statement, use the `lapply` function to create a list whose keys are the column number and values are themselves a list with keys: "min" whose value is the minimum of the column, "max" whose value is the maximum of the column, "pct_missing" is the proportion of missingness in the column and "first_NA" whose value is the row number of the first time the NA appears.
@@ -314,30 +316,37 @@ R
 * Set a seed and then create a vector `v` consisting of a sample of 1,000 iid normal realizations with mean -10 and variance 100.
 
 ```{r}
-#TO-DO
+set.seed(2000) 
+v = rnorm(1000, mean=-10, sd=sqrt(100))
+head(v)
 ```
 
 * Repeat this exercise by resetting the seed to ensure you obtain the same results.
 
 ```{r}
-#TO-DO
+set.seed(2000) 
+v = rnorm(1000, mean=-10, sd=sqrt(100))
+head(v)
 ```
 
 * Find the average of `v` and the standard error of `v`.
 
 ```{r}
-#TO-DO
+mean(v) 
+sd(v) / sqrt(length(v))
 ```
 
 * Find the 5%ile of `v` and use the `qnorm` function to compute what it theoretically should be. Is the estimate about what is expected by theory?
 
 ```{r}
-#TO-DO
+quantile(v, 0.05)
+qnorm(0.05, mean=-10, sd=sqrt(100))
 ```
 
 * What is the percentile of `v` that corresponds to the value 0? What should it be theoretically? Is the estimate about what is expected by theory?
 
 ```{r}
-#TO-DO
+inverse_quant_obj = ecdf(v) 
+inverse_quant_obj(0)
 ```
 
