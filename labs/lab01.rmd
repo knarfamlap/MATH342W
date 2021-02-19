@@ -251,7 +251,6 @@ X = data.frame(
   binary = X[, "binary"]
 )
 X$binary = factor(X$binary, labels=c("DOMESTIC", "FOREIGN"))
-View(X)
 ```
 
 * Print out a table of the binary variable. Then print out the proportions of "DOMESTIC" vs "FOREIGN".
@@ -284,15 +283,15 @@ head(R)
 * Sort the rows in matrix `R` by the largest row sum to lowest. Be careful about the NA's!
 
 ```{r}
-R = sort(na.omit(R), 0, decreasing=TRUE, na.last=TRUE)
+
 ```
 
 * We will now learn the `apply` function. This is a handy function that saves writing for loops which should be eschewed in R. Use the apply function to compute a vector whose entries are the standard deviation of each row. Use the apply function to compute a vector whose entries are the standard deviation of each column. Be careful about the NA's! This should be one line.
 
 ```{r}
-sd_fun = function(x) sd(na.exclude(x))
-R_row_sd = apply(R, 2, sd_fun) # sd for rows
-R_col_sd = apply(R, 2, sd_fun)
+#sd_fun = function(x) sd(na.exclude(x))
+#R_row_sd = apply(R, 2, sd_fun) # sd for rows
+#R_col_sd = apply(R, 2, sd_fun)
 ```
 
 * Use the `apply` function to compute a vector whose entries are the count of entries that are 1 or 2 in each column. This should be one line.
