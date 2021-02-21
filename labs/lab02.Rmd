@@ -1,6 +1,6 @@
 ---
 title: "Lab 2"
-author: "Your Name Here"
+author: "Frank Palma Gomez"
 output: pdf_document
 date: "11:59PM February 25, 2021"
 ---
@@ -225,20 +225,32 @@ y
 
 ```{r}
 mode = function(x) {
-  names(sort(table(v), decreasing = TRUE)[1])
+  names(sort(table(x), decreasing = TRUE)[1])
 }
 ```
 
 * Fit a threshold model to `y` using the feature `Sepal.Length`. Write your own code to do this. What is the estimated value of the threshold parameter? Save the threshold value as `threshold`. 
 
 ```{r}
-#TO-DO
+X = iris$Sepal.Length
+
+n = nrow(X) 
+num_errors_by_param = matrix(NA, nrow=n, 2)  # init matrix
+colnames(num_errors_by_param) = c("threshold_param", "num_errors") # add cols
+
+for (i in 1:n) {
+  threshold = X[i]
+  num_errs = sum((X > threshold) != y) 
+  num_errors_by_param[i, ] = c(threshold, num_errs)
+}
+
 ```
 
 What is the total number of errors this model makes?
 
 ```{r}
-#TO-DO
+total_num_errs = sum(num_errors_by_param[, 2])
+total_num_errs
 ```
 
 Does the threshold model's performance make sense given the following summaries:
@@ -265,19 +277,43 @@ g = function(x){
 You will code the "perceptron learning algorithm" for arbitrary number of features $p$. Take a look at the comments above the function. Respect the spec below:
 
 ```{r}
-#' TO-DO: Provide a name for this function 
+#' Perceptron with p features 
 #'
-#' TO-DO: Explain what this function does in a few sentences
+#' Implementation of the Perceptron model with p features. 
 #'
-#' @param Xinput      TO-DO: Explain this
-#' @param y_binary    TO-DO: Explain this
-#' @param MAX_ITER    TO-DO: Explain this
-#' @param w           TO-DO: Explain this
+#' @param Xinput      A matrix of features for training data observations
+#' @param y_binary    Vector of training data labels
+#' @param MAX_ITER    Number of iterations the models must do to converge
+#' @param w           Weight vector used to learn the parameters
 #'
 #' @return            The computed final parameter (weight) as a vector of length p + 1
-perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL){
-  #TO-DO
+perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL) {
+  p = ncol(Xinput) # get the number of features
+  n = nrow(Xinput)
+  if (is.null(w)) {
+    # check if w is NULL
+    w = rep(0, p + 1) # p + 1 since we include the bias
+  } else if (length(w) != p + 1) {
+    stop("The length of w must be the nrow(Xinput) + 1")
+  }
+  
+  X_with_bias = as.matrix(cbind(1, Xinput[, 1:p, drop=FALSE])) 
+  
+  for (iter in 1 : MAX_ITER) {
+    for (i in 1 : n) {
+      x_i = X_with_bias[i, ] # get the ith observation
+      yhat = ifelse(sum(x_i * w) > 0, 1, 0)  # predicted label
+      y_i = y_binary[i] # true label
+      # update weights and biases    
+      for (j  in 1:p) {
+        w[j] = w[j] + (y_i - yhat) * x_i[j]
+      }
+    }
+  }
+  
+  w # return weight vector
 }
+
 ```
 
 To understand what the algorithm is doing - linear "discrimination" between two response categories, we can draw a picture. First let's make up some very simple training data $\mathbb{D}$.
@@ -307,6 +343,8 @@ simple_viz_obj
 ```
 
 TO-DO: Explain this picture.
+
+We can see in the picture that we have two different classes. The data is linearly separable because we can easily draw a line that separates both classes. 
 
 Now, let us run the algorithm and see what happens:
 
