@@ -29,7 +29,7 @@ my_reverse(v)
 ```{r}
 flip_matrix = function(X, dim_to_rev=NULL) {
   if (is.null(dim_to_rev)) {
-  dim_to_rev = ifelse(nrow(X) >= ncol(X), "rows", "cols")
+    dim_to_rev = ifelse(nrow(X) >= ncol(X), "rows", "cols")
   }
   if (dim_to_rev == "rows") {
     X[my_reverse(1:nrow(X)), ] 
@@ -49,9 +49,15 @@ flip_matrix(X)
 
 ```{r}
 # TO-DO
-arrays = list()
-arrays[["A"]] = array(1:4, dim=c(2, 2))
-arrays
+my_list = list()
+letter_list = LETTERS[1:8]
+for (letter in letter_list) {
+  letter_idx = which(letter == LETTERS) 
+  len = letter_idx * letter_idx
+  my_list[[letter]] = array(1:len, dim=rep(letter_idx, letter_idx))
+}
+
+head(my_list$A)
 ```
 
 Run the following code:
@@ -62,12 +68,12 @@ lapply(my_list, object.size)
 
 Use `?object.size` to read about what these functions do. Then explain the output you see above. For the later arrays, does it make sense given the dimensions of the arrays?
 
-#TO-DO
+object.size calculates what the size of an object is. You can see the byte size increase exponentially since we are storing high dimensional arrays. The later arrays make sense since we have an array with dimensions 8^8, thus, its size is very large. 
 
 Now cleanup the namespace by deleting all stored objects and functions:
 
 ```{r}
-#TO-DO
+rm(list=ls())
 ```
 
 ## A little about strings
@@ -76,7 +82,12 @@ Now cleanup the namespace by deleting all stored objects and functions:
 
 ```{r}
 lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi posuere varius volutpat. Morbi faucibus ligula id massa ultricies viverra. Donec vehicula sagittis nisi non semper. Donec at tempor erat. Integer dapibus mi lectus, eu posuere arcu ultricies in. Cras suscipit id nibh lacinia elementum. Curabitur est augue, congue eget quam in, scelerisque semper magna. Aenean nulla ante, iaculis sed vehicula ac, finibus vel arcu. Mauris at sodales augue. "
-```
+?strsplit
+
+res = unlist(strsplit(lorem, "(?<=\\.)\\s(?=[A-Z])", perl=TRUE))
+mixed = list(sample(res, length(res)))
+sapply(mixed, paste, collapse = " ")
+``` 
 
 You have a set of names divided by gender (M / F) and generation (Boomer / GenX / Millenial):
 
@@ -92,7 +103,8 @@ Create a list-within-a-list that will intelligently store this data.
 ```{r}
 #HINT: 
 #strsplit("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie", split = ", ")[[1]]
-#TO-DO
+population = list()
+
 ```
 
 ## Dataframe creation
