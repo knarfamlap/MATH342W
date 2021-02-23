@@ -115,7 +115,7 @@ Imagine you are running an experiment with many manipulations. You have 14 level
 ```{r}
 n = 14 * 3 * 2 * 3 * 10
 #X = data.frame(treatment = rep(NA,n), 
-#                ...
+#                
 #TO-DO
 ```
 
@@ -181,13 +181,16 @@ nn_algorithm_predict = function(Xinput, y_binary, xtest, d=function(v1, v2) {sum
 Write a few tests to ensure it actually works:
 
 ```{r}
-#TO-DO
+Xinput = as.matrix(cbind(c(1, 1, 2, 3, 3, 4), c(1, 2, 1, 3, 4, 3)))
+Xtest = as.matrix(c(1, 3, 4, 2, 1, 2))
+y_bin = factor(c(0, 0, 0, 1, 1, 1))
+nn_algorithm_predict(Xinput, y_bin, Xtest)
 ```
 
 We now add an argument `d` representing any legal distance function to the `nn_algorithm_predict` function. Update the implementation so it performs NN using that distance function. Set the default function to be the Euclidean distance in the original function. Also, alter the documentation in the appropriate places.
 
 ```{r}
-
+# DONE ABOVE
 ```
 
 For extra credit (unless you're a masters student), add an argument `k` to the `nn_algorithm_predict` function and update the implementation so it performs KNN. In the case of a tie, choose $\hat{y}$ randomly. Set the default `k` to be the square root of the size of $\mathcal{D}$ which is an empirical rule-of-thumb popularized by the "Pattern Classification" book by Duda, Hart and Stork (2007). Also, alter the documentation in the appropriate places.
@@ -289,7 +292,6 @@ You will code the "perceptron learning algorithm" for arbitrary number of featur
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL) {
   p = ncol(Xinput) # get the number of features
-  n = nrow(Xinput)
   if (is.null(w)) {
     # check if w is NULL
     w = rep(0, p + 1) # p + 1 since we include the bias
@@ -297,7 +299,8 @@ perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = 
     stop("The length of w must be the nrow(Xinput) + 1")
   }
   
-  X_with_bias = as.matrix(cbind(1, Xinput[, 1:p, drop=FALSE])) 
+  X_with_bias = as.matrix(cbind(1, Xinput)) 
+  n = nrow(X_with_bias)
   
   for (iter in 1 : MAX_ITER) {
     for (i in 1 : n) {
@@ -305,7 +308,7 @@ perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = 
       yhat = ifelse(sum(x_i * w) > 0, 1, 0)  # predicted label
       y_i = y_binary[i] # true label
       # update weights and biases    
-      for (j  in 1:p) {
+      for (j  in 1:ncol(X_with_bias)) {
         w[j] = w[j] + (y_i - yhat) * x_i[j]
       }
     }
@@ -357,7 +360,7 @@ w_vec_simple_per
 
 Explain this output. What do the numbers mean? What is the intercept of this line and the slope? You will have to do some algebra.
 
-TO-DO
+The intercept is -7 and the slope is 4. This is the line the perceptron was able to create. It somewhat seperates the data but could be better. 
 
 
 ```{r}
@@ -370,7 +373,7 @@ simple_viz_obj + simple_perceptron_line
 
 Explain this picture. Why is this line of separation not "satisfying" to you?
 
-TO-DO 
+The line is not satisfying because we can easily create a line that will maximize the distance between each of the classes. The line does a medeocre job at separating the data. 
 
 For extra credit, program the maximum-margin hyperplane perceptron that provides the best linear discrimination model for linearly separable data. Make sure you provide ROxygen documentation for this function.
 
