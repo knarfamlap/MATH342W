@@ -101,9 +101,28 @@ You have a set of names divided by gender (M / F) and generation (Boomer / GenX 
 Create a list-within-a-list that will intelligently store this data.
 
 ```{r}
-#HINT: 
-#strsplit("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie", split = ", ")[[1]]
-population = list()
+split_str = function(x) {
+  strsplit(x, split = ", ")[[1]]
+}
+
+male_boomer = split_str("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie")
+female_boomer = split_str("Gloria, Joan, Dorothy, Shirley, Betty, Dianne, Kay, Marjorie, Lorraine, Mildred")
+
+male_genx = split_str("Marc, Jamie, Greg, Darryl, Tim, Dean, Jon, Chris, Troy, Jeff")
+female_genx = split_str("Tracy, Dawn, Tina, Tammy, Melinda, Tamara, Tracey, Colleen, Sherri, Heidi")
+
+male_millennial = split_str("Zachary, Dylan, Christian, Wesley, Seth, Austin, Gabriel, Evan, Casey, Luis")
+female_millennial = split_str("Samantha, Alexis, Brittany, Lauren, Taylor, Bethany, Latoya, Candice, Brittney, Cheyenne")
+
+
+boomer = list("M"=male_boomer, "F"=female_boomer)
+genx = list("M"=male_genx, "F"=female_genx)
+millennial = list("M"=male_millennial, "F"=female_millennial)
+
+data = list()
+data[["Boomer"]] = boomer
+data[["GenX"]] = genx
+data[["Millennial"]] = millennial
 
 ```
 
@@ -208,8 +227,7 @@ data(iris)
 pacman::p_load(skimr) 
 skim(iris)
 ```
-
-TO-DO: describe this data
+The iris dataset contains 4 features. There are 150 observations. Each observation is labeled as virginica, setosa, or versicolor. We can easily see the mean value of the length and width for both sepal and petal.
 
 The outcome / label / response is `Species`. This is what we will be trying to predict. However, we only care about binary classification between "setosa" and "versicolor" for the purposes of this exercise. Thus the first order of business is to drop one class. Let's drop the data for the level "virginica" from the data frame.
 
@@ -235,18 +253,22 @@ mode = function(x) {
 * Fit a threshold model to `y` using the feature `Sepal.Length`. Write your own code to do this. What is the estimated value of the threshold parameter? Save the threshold value as `threshold`. 
 
 ```{r}
-X = iris$Sepal.Length
+X = as.matrix(iris$Sepal.Length)
 
 n = nrow(X) 
-num_errors_by_param = matrix(NA, nrow=n, 2)  # init matrix
+num_errors_by_param = matrix(NA, nrow=n, ncol=2)  # init matrix
 colnames(num_errors_by_param) = c("threshold_param", "num_errors") # add cols
 
 for (i in 1:n) {
-  threshold = X[i]
+  threshold = X[i,]
   num_errs = sum((X > threshold) != y) 
   num_errors_by_param[i, ] = c(threshold, num_errs)
 }
 
+best_row = order(num_errors_by_param[, "num_errors"])[1]
+threshold = c(num_errors_by_param[best_row, "threshold_param"], use.names=FALSE) 
+
+threshold
 ```
 
 What is the total number of errors this model makes?
@@ -264,13 +286,13 @@ summary(iris[iris$Species == "setosa", "Sepal.Length"])
 summary(iris[iris$Species == "versicolor", "Sepal.Length"])
 ```
 
-TO-DO: Write your answer here in English.
+TODO: 
 
-Create the function `g` explicitly that can predict `y` from `x` being a new `Sepal.Length`.
+Create the function `g` explicitly that can predict `y` from `x` being a new `Sepal.Length`
 
 ```{r}
 g = function(x){
-  #TO-DO
+  ifelse(x > threshold, 1, 0)
 }
 ```
 
