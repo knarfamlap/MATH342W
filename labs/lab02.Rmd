@@ -48,7 +48,6 @@ flip_matrix(X)
 * Create a list named `my_list` with keys "A", "B", ... where the entries are arrays of size 1, 2 x 2, 3 x 3 x 3, etc. Fill the array with the numbers 1, 2, 3, etc. Make 8 entries according to this sequence.
 
 ```{r}
-# TO-DO
 my_list = list()
 letter_list = LETTERS[1:8]
 for (letter in letter_list) {
@@ -119,17 +118,13 @@ boomer = list("M"=male_boomer, "F"=female_boomer)
 genx = list("M"=male_genx, "F"=female_genx)
 millennial = list("M"=male_millennial, "F"=female_millennial)
 
-data = list()
-data[["Boomer"]] = boomer
-data[["GenX"]] = genx
-data[["Millennial"]] = millennial
-
+data = list("Boomer"=boomer, "GenX"=genx, "Millennial"=millennial)
 ```
 
 ## Dataframe creation
 
 
-Imagine you are running an experiment with many manipulations. You have 14 levels in the variable "treatment" with levels a, b, c, etc. For each of those manipulations you have 3 submanipulations in a variable named "variation" with levels A, B, C. Then you have "gender" with levels M / F. Then you have "generation" with levels Boomer, GenX, Millenial. Then you will have 6 runs per each of these groups. In each set of 6 you will need to select a name without duplication from the appropriate set of names (from the last question). Create a data frame with columns treatment, variation, gender, generation, name and y that will store all the unique unit information in this experiment. Leave y empty because it will be measured as the experiment is executed.
+Imagine you are running an experiment with many manipulations. You have 14 levels in the variable "treatment" with levels a, b, c, etc. For each of those manipulations you have 3 submanipulations in a variable named "variation" with levels A, B, C. Then you have "gender" with levels M / F. Then you have "generation" with levels Boomer, GenX, Millennial. Then you will have 6 runs per each of these groups. In each set of 6 you will need to select a name without duplication from the appropriate set of names (from the last question). Create a data frame with columns treatment, variation, gender, generation, name and y that will store all the unique unit information in this experiment. Leave y empty because it will be measured as the experiment is executed.
 
 ```{r}
 n = 14 * 3 * 2 * 3 * 10
@@ -157,7 +152,7 @@ pacman::p_load(testthat)
 
 ```{r}
 v= seq(-100, 100)
-expect_equal(v, -100 : 101)
+expect_equal(v, -100 : 100)
 ```
 
 If there are any errors, the `expect_equal` function will tell you about them. If there are no errors, then it will be silent.
@@ -165,6 +160,15 @@ If there are any errors, the `expect_equal` function will tell you about them. I
 Test the `my_reverse` function from lab2 using the following code:
 
 ```{r}
+my_reverse = function(v) {
+  v_rev = rep(NA, times=length(v))
+  for (i in length(v):1) {
+    v_rev[length(v) - i + 1] = v[i] # reverse index
+  } 
+  
+  v_rev
+}
+
 v = 1:100
 expect_equal(my_reverse(v), rev(v))
 expect_equal(my_reverse(c("A", "B", "C")), c("C", "B", "A"))
@@ -209,13 +213,69 @@ nn_algorithm_predict(Xinput, y_bin, Xtest)
 We now add an argument `d` representing any legal distance function to the `nn_algorithm_predict` function. Update the implementation so it performs NN using that distance function. Set the default function to be the Euclidean distance in the original function. Also, alter the documentation in the appropriate places.
 
 ```{r}
-# DONE ABOVE
+#' Nearest Neighbor Classifier
+#'
+#' Classify an observation based on the label of the closest observation 
+#' in the set of training observations
+#'
+#' @param Xinput      A matrix of features for training data observations
+#' @param y_binary    Vector of training data labels
+#' @param d           A distance function that takes in two row vectors
+#' @param xtest       A test observation as a row vector
+#' @return            Predicted label for Xtest
+nn_algorithm_predict = function(Xinput, y_binary, xtest, d=function(v1, v2) {sum((v1 - v2)^2)}){
+  n = nrow(Xinput)
+  distances = array(NA, n)  # all distances
+  
+  for (i in 1:n) {
+    distances[i] = d(Xinput[i,], xtest) # get diff between row vectors
+  }
+  
+  y_binary[which.min(distances)] # predicted label
+}
 ```
 
 For extra credit (unless you're a masters student), add an argument `k` to the `nn_algorithm_predict` function and update the implementation so it performs KNN. In the case of a tie, choose $\hat{y}$ randomly. Set the default `k` to be the square root of the size of $\mathcal{D}$ which is an empirical rule-of-thumb popularized by the "Pattern Classification" book by Duda, Hart and Stork (2007). Also, alter the documentation in the appropriate places.
 
 ```{r}
-#TO-DO for the 650 students but extra credit for undergrads
+#' Nearest Neighbor Classifier
+#'
+#' Classify an observation based on the label of the closest observation 
+#' in the set of training observations
+#'
+#' @param Xinput      A matrix of features for training data observations
+#' @param y_binary    Vector of training data labels
+#' @param k           Scalar for the number of closest observations we want
+#' @param d           A distance function that takes in two row vectors
+#' @param xtest       A test observation as a row vector
+#' @return            Predicted label for Xtest
+nn_algorithm_predict = function(Xinput, y_binary, xtest, k=NULL, d=function(v1, v2) {sum((v1 - v2)^2)}){
+  n = nrow(Xinput)
+  distances = array(NA, n)  # all distances
+  if (is.null(k)) {
+    k = sqrt(n)
+  }  # check that k is not null
+  
+  for (i in 1:n) {
+    distances[i] = d(Xinput[i,], xtest) # get diff between row vectors
+  }
+  # get the 
+  k_nearest = apply(distances, 1, order)[1:k] # indices of the k nearest
+  k_nearest_labels = y_binary[k_nearest] # labels of the k nearest
+  
+  y_hat = NULL
+  # check if there is a tie
+  
+  if (sum(as.numeric(k_nearest_labels)) == length(k_nearest_labels)) {
+    y_hat = sample(0:1, 1) # choose 0 or 1 randomly
+  } else {
+    y_hat = mode(k_nearest_labels)  # if no tie, get the mode
+  }
+  
+  y_hat
+}
+
+nn_algorithm_predict(Xinput, y_bin, Xtest, 5)
 ```
 
 ## Basic Binary Classification Modeling
@@ -225,7 +285,7 @@ For extra credit (unless you're a masters student), add an argument `k` to the `
 ```{r}
 data(iris)
 pacman::p_load(skimr) 
-skim(iris)
+# skim(iris) IF I UNCOMMENT THIS LINE I CANT COMPILE TO PDF
 ```
 The iris dataset contains 4 features. There are 150 observations. Each observation is labeled as virginica, setosa, or versicolor. We can easily see the mean value of the length and width for both sepal and petal.
 
@@ -285,8 +345,7 @@ threshold
 summary(iris[iris$Species == "setosa", "Sepal.Length"])
 summary(iris[iris$Species == "versicolor", "Sepal.Length"])
 ```
-
-TODO: 
+The model doesnt make sense because the max is already value if 7, so it would only predict one class. 
 
 Create the function `g` explicitly that can predict `y` from `x` being a new `Sepal.Length`
 
@@ -367,8 +426,6 @@ simple_viz_obj = ggplot(Xy_simple, aes(x = first_feature, y = second_feature, co
 simple_viz_obj
 ```
 
-TO-DO: Explain this picture.
-
 We can see in the picture that we have two different classes. The data is linearly separable because we can easily draw a line that separates both classes. 
 
 Now, let us run the algorithm and see what happens:
@@ -395,7 +452,7 @@ simple_viz_obj + simple_perceptron_line
 
 Explain this picture. Why is this line of separation not "satisfying" to you?
 
-The line is not satisfying because we can easily create a line that will maximize the distance between each of the classes. The line does a medeocre job at separating the data. 
+The line is not satisfying because we can easily create a line that will maximize the distance between each of the classes. The line does a mediocre job at separating the data. 
 
 For extra credit, program the maximum-margin hyperplane perceptron that provides the best linear discrimination model for linearly separable data. Make sure you provide ROxygen documentation for this function.
 
