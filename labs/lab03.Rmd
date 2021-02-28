@@ -1,6 +1,6 @@
 ---
 title: "Lab 3"
-author: "Your Name Here"
+author: "Frank Palma Gomez"
 output: pdf_document
 date: "11:59PM March 4, 2021"
 ---
@@ -27,11 +27,12 @@ Use the `e1071` package to fit an SVM model to the simple data. Use a formula to
 ```{r}
 pacman::p_load(e1071)
 svm_model = svm(
-  formula = #TO-DO, 
-  data = #TO-DO, 
+  formula = Xy_simple$response ~., 
+  data = Xy_simple, 
   kernel = "linear", 
   scale = FALSE
 )
+
 ```
 
 and then use the following code to visualize the line in purple:
@@ -52,6 +53,47 @@ simple_viz_obj + simple_svm_line
 Source the `perceptron_learning_algorithm` function from lab 2. Then run the following to fit the perceptron and plot its line in orange with the SVM's line:
 
 ```{r}
+#' Perceptron with p features 
+#'
+#' Implementation of the Perceptron model with p features. 
+#'
+#' @param Xinput      A matrix of features for training data observations
+#' @param y_binary    Vector of training data labels
+#' @param MAX_ITER    Number of iterations the models must do to converge
+#' @param w           Weight vector used to learn the parameters
+#'
+#' @return            The computed final parameter (weight) as a vector of length p + 1
+perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL) {
+  p = ncol(Xinput) # get the number of features
+  if (is.null(w)) {
+    # check if w is NULL
+    w = rep(0, p + 1) # p + 1 since we include the bias
+  } else if (length(w) != p + 1) {
+    stop("The length of w must be the nrow(Xinput) + 1")
+  }
+  
+  X_with_bias = as.matrix(cbind(1, Xinput)) 
+  n = nrow(X_with_bias)
+  
+  for (iter in 1 : MAX_ITER) {
+    for (i in 1 : n) {
+      x_i = X_with_bias[i, ] # get the ith observation
+      yhat = ifelse(sum(x_i * w) > 0, 1, 0)  # predicted label
+      y_i = y_binary[i] # true label
+      # update weights and biases    
+      for (j  in 1:ncol(X_with_bias)) {
+        w[j] = w[j] + (y_i - yhat) * x_i[j]
+      }
+    }
+  }
+  
+  w # return weight vector
+}
+
+```
+
+
+```{r}
 w_vec_simple_per = perceptron_learning_algorithm(
   cbind(Xy_simple$first_feature, Xy_simple$second_feature),
   as.numeric(Xy_simple$response == 1)
@@ -66,7 +108,7 @@ simple_viz_obj + simple_perceptron_line + simple_svm_line
 
 Is this SVM line a better fit than the perceptron?
 
-TO-DO
+The SVM line is better because it maximizes the space between the support vectors. The perceptron is able to divide the classes but there still one observation that lands on top of the separating line. 
 
 Now write pseuocode for your own implementation of the linear support vector machine algorithm using the Vapnik objective function we discussed.
 
@@ -86,6 +128,7 @@ Note there are differences between this spec and the perceptron learning algorit
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
   #TO-DO: write pseudo code in comments
+  
 }
 ```
 
@@ -152,6 +195,10 @@ simple_viz_obj
 
 Does this make sense given the values of $beta_0$ and $beta_1$?
 
+Yes since epsilon is not related to x or y at all. This creates a random align that is not near the plotted data. For that reason, we need to train the alogrithm to get to know the data so it could make a reasonable line. 
+
+
+
 Write a function `my_simple_ols` that takes in a vector `x` and vector `y` and returns a list that contains the `b_0` (intercept), `b_1` (slope), `yhat` (the predictions), `e` (the residuals), `SSE`, `SST`, `MSE`, `RMSE` and `Rsq` (for the R-squared metric). Internally, you can only use the functions `sum` and `length` and other basic arithmetic operations. You should throw errors if the inputs are non-numeric or not the same length. You should also name the class of the return value `my_simple_ols_obj` by using the `class` function as a setter. No need to create ROxygen documentation here.
 
 ```{r}
@@ -212,7 +259,7 @@ expect_equal(my_simple_ols_mod$Rsq, summary(lm_mod)$r.squared, tol = 1e-4)
 Verify that the average of the residuals is 0 using the `expect_equal`. Hint: use the syntax above.
 
 ```{r}
-expect_equal(mean(my_simple_ols_mod$e), mean(lm_mod$e), tolerance=1e-4)
+expect_equal(mean(my_simple_ols_mod$e), 0, tolerance=1e-4)
 ```
 
 Create the $X$ matrix for this data example. Make sure it has the correct dimension.
@@ -281,19 +328,21 @@ data(Galton)
 ```
 
 You now should have a data frame in your workspace called `Galton`. Summarize this data frame and write a few sentences about what you see. Make sure you report $n$, $p$ and a bit about what the columns represent and how the data was measured. See the help file `?Galton`.
-p is 1 and n is 928 the number of observations  
 
 ```{r}
 pacman::p_load(skimr)
 skim(Galton)
+?Galton
 ```
-TO-DO
-
+There are 928 rows (n = 928) and 2 columns (p = 1, since one is the variable we are predicting). The variable "parent" represent the 
+average height of the mother and father. The variable "child" represent the height of the respective
+mother and father. You can see that the mean height of the parent column is 68.2 inches.  
 
 Find the average height (include both parents and children in this computation).
 
 ```{r}
-avg_height = mean(c (Galton$parent, Galton$child))
+avg_height = mean(c(Galton$parent, Galton$child))
+avg_height
 ```
 
 If you were predicting child height from parent height and you were using the null model, what would the RMSE be of this model be?
@@ -320,18 +369,21 @@ Interpret all four quantities: $b_0$, $b_1$, RMSE and $R^2$. Use the correct uni
 
 b_0: a average of parent height 0, will yield a child whose height is 23.94
 b_1: represents a rate at which a child height growths as the height of their parents also grows
+RMSE:  This represents the mean height error of all the observations
+R^2: What percent of the variance could be explained by the model. If the entire variance is explained by the model (100% rsquared) then all the data points fall in the fitted line. In this case the model could only explain 21% of the variance which is okay because the phenomenon we are studying relies on an array of other factors as well. 
 
 How good is this model? How well does it predict? Discuss.
 
-TO-DO
+Considering the simplicity of our data, we could say that the model performs okay We know that if we wanted to model the correlation between parents and childs heights we would need more features that can help us fit a better line. This model only considers one feature thus we could say that there is a high error due to ignorance. 
+
 
 It is reasonable to assume that parents and their children have the same height? Explain why this is reasonable using basic biology and common sense.
 
-TO-DO
+Genetically, we know that features such as height are passed from parents down to their children. So assuming that there is some correlation between parents and child height is reasonable. But what this fitted line shows, is that parents height might not be sufficient enough, and we can see this is the R^2.
 
 If they were to have the same height and any differences were just random noise with expectation 0, what would the values of $\beta_0$ and $\beta_1$ be?
 
-TO-DO
+beta_0 would be 0 and beta_1 would be 1 because every x value with be equal to the y value and it would create a linear line with intercept 0 and slope 1. 
 
 Let's plot (a) the data in $\mathbb{D}$ as black dots, (b) your least squares line defined by $b_0$ and $b_1$ in blue, (c) the theoretical line $\beta_0$ and $\beta_1$ if the parent-child height equality held in red and (d) the mean height in green.
 
@@ -350,34 +402,41 @@ ggplot(Galton, aes(x = parent, y = child)) +
 
 Fill in the following sentence: 
 
-TO-DO: Children of short parents became ... on average and children of tall parents became ... on average.
+Children of short parents became taller on average and children of tall parents became smaller on average.
 
 Why did Galton call it "Regression towards mediocrity in hereditary stature" which was later shortened to "regression to the mean"?
 
-TO-DO
+Galton called it "Regression toward mediocrity in hereditary stature" because he realized that as he fitted the line, the heights will reverse back to the mean. 
+
 
 Why should this effect be real?
 
-TO-DO
+TODO 
 
 You now have unlocked the mystery. Why is it that when modeling with $y$ continuous, everyone calls it "regression"? Write a better, more descriptive and appropriate name for building predictive models with $y$ continuous.
 
-TO-DO
+Because when the model fits the data, the y variable tends to reverse itself back to the mean. You can call it "smoothed linear representations" or "continuous linear representation".
 
 You can now clear the workspace. Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 50\% and RMSE approximately 1.
 
 ```{r}
-x = #TO-DO
-y = #TO-DO
+x = sample(1:5, size = 10, replace = TRUE)
+y = sample(1:5, size = 10, replace = TRUE)
 Xy = data.frame(x = x, y = y)
+mod = lm(Xy$x ~ Xy$y, data=Xy)
+summary(mod)$r.squared
+summary(mod)$sigma
 ```
 
 Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 0\% but x, y are clearly associated.
 
 ```{r}
-x = #TO-DO
-y = #TO-DO
+x = sample(1:10, size = 10, replace = TRUE)
+y = rep(1, 10)
 Xy = data.frame(x = x, y = y)
+mod = lm(Xy$x ~ Xy$y, data=Xy)
+summary(mod)$r.squared
+summary(mod)$sigma
 ```
 
 Extra credit: create a dataset $\mathbb{D}$ and a model that can give you $R^2$ arbitrarily close to 1 i.e. approximately 1 - epsilon but RMSE arbitrarily high i.e. approximately M.
