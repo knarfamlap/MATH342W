@@ -127,7 +127,19 @@ Note there are differences between this spec and the perceptron learning algorit
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
-  #TO-DO: write pseudo code in comments
+  lr = 0.001  # learning rate for SGD
+  
+  n = nrow(Xinput)
+  p = ncol(Xinput)
+  
+  w = 
+  
+  for (inter in 1:MAX_ITER){
+    for (i in 1:n) {
+      condition = y_binary[i] * 
+    }
+  }
+    
   
 }
 ```
@@ -453,7 +465,54 @@ Write a function `my_ols` that takes in `X`, a matrix with with p columns repres
 
 ```{r}
 my_ols = function(X, y){
-  #TO-DO
+  n = nrow(X) # get the num of rows in X 
+  # get the num of cols in X. Add 1 since we add the intercept later
+  p = ncol(X) + 1 
+  # check that X and y have the same number of rows
+  if (nrow(X) != nrow(y)) {
+    stop("X and y must have the same number of rows") 
+  }
+  # check that X is numeric and integer
+  if (class(X)  != "numeric" & class(X) != "integer") {
+    stop("x needs to be numeric")
+  }
+  # check that y is numeric and integer
+  if (class(y)  != "numeric" & class(y) != "integer") {
+    stop("y needs to be numeric")
+  }
+  # check that there are more than 2 rows
+  if (n <= 2) {
+    stop("Dimensions of n must be greater than 2")
+  }
+  # add the intercept columns so now we have p + 1 columns
+  X = as.matrix(cbind(1, X[, 1:p]))
+  colnames(X)[1] = "(intercept)" 
+  # take the dot product of the transpose and the orig matrix
+  XtX = t(X) %*% X
+  # check that this is invertable first 
+  # and check that is full rank
+  tryCatch({
+    XtXinv = solve(XtX)
+  }, error = function(e) {
+    stop("Matrix is not invertible or does not have full rank")
+  })
+  
+  b = XtXinv %*% t(X) %*% y
+  yhat = X %*% b # predictions of the training data
+  e = y - yhat # residuals
+  df  = ... # degrees of freedom
+  SSE = t(e) %*% e
+  s_sq_y = var(y )
+  SST = (n -1)  * s_sq_y
+  MSE = 1 /(nrow(X) - ncol(X)) * SSE 
+  RMSE = sqrt(MSE)
+  Rsq = 1 - SSE / SST
+  
+  model = list("b"=b, "yhat"=yhat, "e"=e, "SSE"=SSE, "SST"=SST, "MSE"=MSE, "RMSE"=RMSE, "Rsq"=Rsq)
+  
+  class(model) = "my_ols"
+  
+  model
 }
 ```
 
@@ -468,7 +527,9 @@ Create a prediction method `g` that takes in a vector `x_star` and the dataset $
 
 ```{r}
 g = function(x_star, X, y){
-  #TO-DO
+  model = my_ols(X, y) 
+  
+  x_start %*% model$b
 }
 ```
 
