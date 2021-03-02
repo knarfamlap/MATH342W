@@ -127,21 +127,42 @@ Note there are differences between this spec and the perceptron learning algorit
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
-  lr = 0.001  # learning rate for SGD
+  
+  hinge_err = function(x, y, w, b) {
+    condition =  (1/2) - (y - (1/2)) * (w * x - b)
+    sum(max(0, condition))
+  }
+  
+  norm_vec <- function(x) sqrt(sum(x^2))
+  
+  cost = function(n, h_err, lambda, w) {
+    (1 / n) * h_err + lambda * norm_vec(w)
+  }
+  
   
   n = nrow(Xinput)
   p = ncol(Xinput)
   
-  w = 
+  w = rep(1, p)
+  b = 0
+  
   
   for (inter in 1:MAX_ITER){
     for (i in 1:n) {
-      condition = y_binary[i] * 
+      condition = y_binary[i] * ((Xinput[i, ] %*% w) - b)
+      if (condition >= 1) {
+        w = w - (lr * (2 * lambda * w))
+      } else {
+        w = w -  (lr * (2 * lambda * w - (Xinput[i, ] * y_binary[i])))
+        b = b - (lr * y_binary[i])
+      }
     }
   }
-    
   
+  # return weight row vector with p + 1. Includes bias
+  cbind(b, w)
 }
+
 ```
 
 
@@ -164,6 +185,9 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
 If you wrote code (the extra credit), run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
 
 ```{r}
+X_simple_feature_matrix = as.matrix(cbind(Xy_simple$first_feature, Xy_simple$second_feature))
+y_binary = as.numeric(Xy_simple$response)
+
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
 my_svm_line = geom_abline(
     intercept = svm_model_weights[1] / svm_model_weights[3],#NOTE: negative sign removed from intercept argument here
@@ -285,7 +309,6 @@ Use the `model.matrix` function to compute the matrix `X` and verify it is the s
 
 ```{r}
 model.matrix(~x) 
-
 ```
 
 Create a prediction method `g` that takes in a vector `x_star` and `my_simple_ols_obj`, an object of type `my_simple_ols_obj` and predicts y values for each entry in `x_star`. 
