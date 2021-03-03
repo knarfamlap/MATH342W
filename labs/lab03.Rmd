@@ -114,6 +114,9 @@ Now write pseuocode for your own implementation of the linear support vector mac
 
 Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
 
+```{r}
+pacman::p_load(optimx)
+```
 
 ```{r}
 #' Support Vector Machine 
@@ -126,41 +129,8 @@ Note there are differences between this spec and the perceptron learning algorit
 #' @param lambda      A scalar hyperparameter trading off margin of the hyperplane versus average hinge loss.
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
-linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
+linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1) {
   
-  hinge_err = function(x, y, w, b) {
-    condition =  (1/2) - (y - (1/2)) * (w * x - b)
-    sum(max(0, condition))
-  }
-  
-  norm_vec <- function(x) sqrt(sum(x^2))
-  
-  cost = function(n, h_err, lambda, w) {
-    (1 / n) * h_err + lambda * norm_vec(w)
-  }
-  
-  
-  n = nrow(Xinput)
-  p = ncol(Xinput)
-  
-  w = rep(1, p)
-  b = 0
-  
-  
-  for (inter in 1:MAX_ITER){
-    for (i in 1:n) {
-      condition = y_binary[i] * ((Xinput[i, ] %*% w) - b)
-      if (condition >= 1) {
-        w = w - (lr * (2 * lambda * w))
-      } else {
-        w = w -  (lr * (2 * lambda * w - (Xinput[i, ] * y_binary[i])))
-        b = b - (lr * y_binary[i])
-      }
-    }
-  }
-  
-  # return weight row vector with p + 1. Includes bias
-  cbind(b, w)
 }
 
 ```
@@ -178,7 +148,41 @@ If you are enrolled in 342W the following is extra credit but if you're enrolled
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
-  #TO-DO
+  
+  n = nrow(Xinput)
+  p = ncol(Xinput) 
+  
+  if (nrow(Xinput) != nrow(y_binary)) {
+    stop("X and y must have the same number of rows") 
+  }
+  # check that X is numeric and integer
+  if (class(Xinput)  != "numeric" & class(Xinput) != "integer") {
+    stop("x needs to be numeric")
+  }
+  # check that y is numeric and integer
+  if (class(y_binary)  != "numeric" & class(y_binary) != "integer") {
+    stop("y needs to be numeric")
+  }
+  # check that there are more than 2 rows
+  if (n <= 2) {
+    stop("Dimensions of n must be greater than 2")
+  }
+  
+  
+  w = rep(1, p)
+  w = c(0, w)
+  
+  cost_fn = function(w) {
+      norm_vec = function(x) sqrt(sum(x^2))
+      condition = (1/2) - (y_binary - (1/2)) * (w * Xinput - w[0])
+      sum_hinge_errors = sum(max(0, condition))
+      (1 / n) * sum_hinge_errors + lambda * norm_vec(w)
+  }
+   
+  # return weight row vector with p + 1. Includes bias
+  optim_df = optimx(w, cost_fn, method="CG", itnmax=MAX_ITER)
+  
+  c(optim_df$p1, optim_df$p2, optim_df$p3)
 }
 ```
 
@@ -189,6 +193,8 @@ X_simple_feature_matrix = as.matrix(cbind(Xy_simple$first_feature, Xy_simple$sec
 y_binary = as.numeric(Xy_simple$response)
 
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
+
+print(svm_model_weights)
 my_svm_line = geom_abline(
     intercept = svm_model_weights[1] / svm_model_weights[3],#NOTE: negative sign removed from intercept argument here
     slope = -svm_model_weights[2] / svm_model_weights[3], 
