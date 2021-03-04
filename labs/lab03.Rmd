@@ -1,10 +1,11 @@
 ---
 title: "Lab 3"
 author: "Frank Palma Gomez"
-output: pdf_document
+output:
+  pdf_document:
+    latex_engine: xelatex
 date: "11:59PM March 4, 2021"
 ---
-
 
 ## Support Vector Machine vs. Perceptron
 
@@ -92,7 +93,6 @@ perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = 
 
 ```
 
-
 ```{r}
 w_vec_simple_per = perceptron_learning_algorithm(
   cbind(Xy_simple$first_feature, Xy_simple$second_feature),
@@ -108,11 +108,11 @@ simple_viz_obj + simple_perceptron_line + simple_svm_line
 
 Is this SVM line a better fit than the perceptron?
 
-The SVM line is better because it maximizes the space between the support vectors. The perceptron is able to divide the classes but there still one observation that lands on top of the separating line. 
+The SVM line is better because it maximizes the space between the support vectors. The perceptron is able to divide the classes but there still one observation that lands on top of the separating line.
 
 Now write pseuocode for your own implementation of the linear support vector machine algorithm using the Vapnik objective function we discussed.
 
-Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
+Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value.
 
 ```{r}
 pacman::p_load(optimx)
@@ -151,7 +151,6 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
 
 ```
 
-
 If you are enrolled in 342W the following is extra credit but if you're enrolled in 650, the following is required. Write the actual code. You may want to take a look at the `optimx` package. You can feel free to define another function (a "private" function) in this chunk if you wish. R has a way to create public and private functions, but I believe you need to create a package to do that (beyond the scope of this course).
 
 ```{r}
@@ -184,25 +183,22 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
     stop("Dimensions of n must be greater than 2")
   }
   
+  # first element is the bias
+  w = rep(1, p+1)
   
-  w = rep(1, p)
-  b = 0
-  
-  cost_fn = function(w, b) {
+  cost_fn = function(w) {
       norm_vec = function(x) sqrt(sum(x^2))
-      y_part = y_binary - 0.5
-      x_part = w * Xinput
+      y_part = as.numeric(y_binary - 0.5)
+      x_part = w[2:length(w)] * Xinput
       
-      d = 0.5 - y_part * (x_part - b)
+      d = 0.5 - y_part * (x_part - w[1])
       
       sum_hinge_errors = sum(max(0, d))
-      (1 / n) * sum_hinge_errors + lambda * norm_vec(w)
+      (1 / n) * sum_hinge_errors + lambda * norm_vec(w[2:length(w)])
   }
   
-  print(cost_fn(w, b))
-   
   # return weight row vector with p + 1. Includes bias
-  optim_df = optimx(w, b, cost_fn, method="BFGS", itnmax=MAX_ITER)
+  optim_df = optimx(w, cost_fn, method="nlm", itnmax=MAX_ITER)
   
   c(optim_df$p1, optim_df$p2, optim_df$p3)
 }
@@ -214,6 +210,7 @@ If you wrote code (the extra credit), run your function using the defaults and p
 X_simple_feature_matrix = as.matrix(cbind(Xy_simple$first_feature, Xy_simple$second_feature))
 y_binary = as.matrix(as.numeric(Xy_simple$response))
 
+
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
 
 print(svm_model_weights)
@@ -222,9 +219,6 @@ my_svm_line = geom_abline(
     slope = -svm_model_weights[2] / svm_model_weights[3], 
     color = "brown")
 simple_viz_obj  + my_svm_line
-
-
-?optimx
 ```
 
 Is this the same as what the `e1071` implementation returned? Why or why not?
@@ -242,7 +236,7 @@ beta_0 = 3
 beta_1 = -2
 ```
 
-Compute $h^*(x)$ as h_star_x, then draw $\epsilon \sim N(0, 0.33^2)$ as `epsilon`, then compute $\y$.
+Compute $h^*(x)$ as h_star_x, then draw $\epsilon \sim N(0, 0.33^2)$ as `epsilon`, then compute y.
 
 ```{r}
 h_star_x = beta_0 + beta_1 * x
@@ -262,9 +256,7 @@ simple_viz_obj
 
 Does this make sense given the values of $beta_0$ and $beta_1$?
 
-Yes since epsilon is not related to x or y at all. This creates a random align that is not near the plotted data. For that reason, we need to train the alogrithm to get to know the data so it could make a reasonable line. 
-
-
+Yes since epsilon is not related to x or y at all. This creates a random align that is not near the plotted data. For that reason, we need to train the alogrithm to get to know the data so it could make a reasonable line.
 
 Write a function `my_simple_ols` that takes in a vector `x` and vector `y` and returns a list that contains the `b_0` (intercept), `b_1` (slope), `yhat` (the predictions), `e` (the residuals), `SSE`, `SST`, `MSE`, `RMSE` and `Rsq` (for the R-squared metric). Internally, you can only use the functions `sum` and `length` and other basic arithmetic operations. You should throw errors if the inputs are non-numeric or not the same length. You should also name the class of the return value `my_simple_ols_obj` by using the `class` function as a setter. No need to create ROxygen documentation here.
 
@@ -342,7 +334,7 @@ Use the `model.matrix` function to compute the matrix `X` and verify it is the s
 model.matrix(~x) 
 ```
 
-Create a prediction method `g` that takes in a vector `x_star` and `my_simple_ols_obj`, an object of type `my_simple_ols_obj` and predicts y values for each entry in `x_star`. 
+Create a prediction method `g` that takes in a vector `x_star` and `my_simple_ols_obj`, an object of type `my_simple_ols_obj` and predicts y values for each entry in `x_star`.
 
 ```{r}
 g = function(my_simple_ols_obj, x_star){
@@ -356,8 +348,7 @@ Use this function to verify that when predicting for the average x, you get the 
 expect_equal(g(my_simple_ols_mod, mean(x)), mean(y))
 ```
 
-
-In class we spoke about error due to ignorance, misspecification error and estimation error. Show that as n grows, estimation error shrinks. Let us define an error metric that is the difference between $b_0$ and $b_1$ and $\beta_0$ and $\beta_1$. How about $h = ||b - \beta||^2$ where the quantities are now the vectors of size two. Show as n increases, this shrinks. 
+In class we spoke about error due to ignorance, misspecification error and estimation error. Show that as n grows, estimation error shrinks. Let us define an error metric that is the difference between $b_0$ and $b_1$ and $\beta_0$ and $\beta_1$. How about $h = ||b - \beta||^2$ where the quantities are now the vectors of size two. Show as n increases, this shrinks.
 
 ```{r}
 beta_0 = 3
@@ -380,7 +371,6 @@ for (i in 1 : length(ns)) {
 log(errors_in_b)
 ```
 
-
 We are now going to repeat one of the first linear model building exercises in history --- that of Sir Francis Galton in 1886. First load up package `HistData`.
 
 ```{r}
@@ -400,9 +390,8 @@ pacman::p_load(skimr)
 skim(Galton)
 ?Galton
 ```
-There are 928 rows (n = 928) and 2 columns (p = 1, since one is the variable we are predicting). The variable "parent" represent the 
-average height of the mother and father. The variable "child" represent the height of the respective
-mother and father. You can see that the mean height of the parent column is 68.2 inches.  
+
+There are 928 rows (n = 928) and 2 columns (p = 1, since one is the variable we are predicting). The variable "parent" represent the average height of the mother and father. The variable "child" represent the height of the respective mother and father. You can see that the mean height of the parent column is 68.2 inches.
 
 Find the average height (include both parents and children in this computation).
 
@@ -418,9 +407,10 @@ n = nrow(Galton)
 SST = sum((Galton$child - mean(Galton$child))^2)
 sqrt(SST / (n-1)) 
 ```
+
 Note that in Math 241 you learned that the sample average is an estimate of the "mean", the population expected value of height. We will call the average the "mean" going forward since it is probably correct to the nearest tenth of an inch with this amount of data.
 
-Run a linear model attempting to explain the childrens' height using the parents' height. Use `lm` and use the R formula notation. Compute and report $b_0$, $b_1$, RMSE and $R^2$. 
+Run a linear model attempting to explain the childrens' height using the parents' height. Use `lm` and use the R formula notation. Compute and report $b_0$, $b_1$, RMSE and $R^2$.
 
 ```{r}
 mod = lm(child~parent, Galton)
@@ -430,26 +420,21 @@ summary(mod)$sigma
 summary(mod)$r.squared
 ```
 
-
 Interpret all four quantities: $b_0$, $b_1$, RMSE and $R^2$. Use the correct units of these metrics in your answer.
 
-b_0: a average of parent height 0, will yield a child whose height is 23.94
-b_1: represents a rate at which a child height growths as the height of their parents also grows
-RMSE:  This represents the mean height error of all the observations
-R^2: What percent of the variance could be explained by the model. If the entire variance is explained by the model (100% rsquared) then all the data points fall in the fitted line. In this case the model could only explain 21% of the variance which is okay because the phenomenon we are studying relies on an array of other factors as well. 
+b_0: a average of parent height 0, will yield a child whose height is 23.94 b_1: represents a rate at which a child height growths as the height of their parents also grows RMSE: This represents the mean height error of all the observations R\^2: What percent of the variance could be explained by the model. If the entire variance is explained by the model (100% rsquared) then all the data points fall in the fitted line. In this case the model could only explain 21% of the variance which is okay because the phenomenon we are studying relies on an array of other factors as well.
 
 How good is this model? How well does it predict? Discuss.
 
-Considering the simplicity of our data, we could say that the model performs okay We know that if we wanted to model the correlation between parents and childs heights we would need more features that can help us fit a better line. This model only considers one feature thus we could say that there is a high error due to ignorance. 
-
+Considering the simplicity of our data, we could say that the model performs okay We know that if we wanted to model the correlation between parents and childs heights we would need more features that can help us fit a better line. This model only considers one feature thus we could say that there is a high error due to ignorance.
 
 It is reasonable to assume that parents and their children have the same height? Explain why this is reasonable using basic biology and common sense.
 
-Genetically, we know that features such as height are passed from parents down to their children. So assuming that there is some correlation between parents and child height is reasonable. But what this fitted line shows, is that parents height might not be sufficient enough, and we can see this is the R^2.
+Genetically, we know that features such as height are passed from parents down to their children. So assuming that there is some correlation between parents and child height is reasonable. But what this fitted line shows, is that parents height might not be sufficient enough, and we can see this is the R\^2.
 
 If they were to have the same height and any differences were just random noise with expectation 0, what would the values of $\beta_0$ and $\beta_1$ be?
 
-beta_0 would be 0 and beta_1 would be 1 because every x value with be equal to the y value and it would create a linear line with intercept 0 and slope 1. 
+beta_0 would be 0 and beta_1 would be 1 because every x value with be equal to the y value and it would create a linear line with intercept 0 and slope 1.
 
 Let's plot (a) the data in $\mathbb{D}$ as black dots, (b) your least squares line defined by $b_0$ and $b_1$ in blue, (c) the theoretical line $\beta_0$ and $\beta_1$ if the parent-child height equality held in red and (d) the mean height in green.
 
@@ -466,24 +451,23 @@ ggplot(Galton, aes(x = parent, y = child)) +
   coord_equal(ratio = 1)
 ```
 
-Fill in the following sentence: 
+Fill in the following sentence:
 
 Children of short parents became taller on average and children of tall parents became smaller on average.
 
 Why did Galton call it "Regression towards mediocrity in hereditary stature" which was later shortened to "regression to the mean"?
 
-Galton called it "Regression toward mediocrity in hereditary stature" because he realized that as he fitted the line, the heights will reverse back to the mean. 
-
+Galton called it "Regression toward mediocrity in hereditary stature" because he realized that as he fitted the line, the heights will reverse back to the mean.
 
 Why should this effect be real?
 
-TODO 
+Our best model without any features is to take the mean of our response variable, so it makes sense that our model should be something similar
 
 You now have unlocked the mystery. Why is it that when modeling with $y$ continuous, everyone calls it "regression"? Write a better, more descriptive and appropriate name for building predictive models with $y$ continuous.
 
 Because when the model fits the data, the y variable tends to reverse itself back to the mean. You can call it "smoothed linear representations" or "continuous linear representation".
 
-You can now clear the workspace. Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 50\% and RMSE approximately 1.
+You can now clear the workspace. Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 50% and RMSE approximately 1.
 
 ```{r}
 x = sample(1:5, size = 10, replace = TRUE)
@@ -494,7 +478,7 @@ summary(mod)$r.squared
 summary(mod)$sigma
 ```
 
-Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 0\% but x, y are clearly associated.
+Create a dataset $\mathbb{D}$ which we call `Xy` such that the linear model as $R^2$ about 0% but x, y are clearly associated.
 
 ```{r}
 x = sample(1:10, size = 10, replace = TRUE)
@@ -513,9 +497,7 @@ M = 1000
 #TO-DO
 ```
 
-
 Write a function `my_ols` that takes in `X`, a matrix with with p columns representing the feature measurements for each of the n units, a vector of $n$ responses `y` and returns a list that contains the `b`, the $p+1$-sized column vector of OLS coefficients, `yhat` (the vector of $n$ predictions), `e` (the vector of $n$ residuals), `df` for degrees of freedom of the model, `SSE`, `SST`, `MSE`, `RMSE` and `Rsq` (for the R-squared metric). Internally, you cannot use `lm` or any other package; it must be done manually. You should throw errors if the inputs are non-numeric or not the same length. Or if `X` is not otherwise suitable. You should also name the class of the return value `my_ols` by using the `class` function as a setter. No need to create ROxygen documentation here.
-
 
 ```{r}
 my_ols = function(X, y){
@@ -570,12 +552,13 @@ my_ols = function(X, y){
 }
 ```
 
-Verify that the OLS coefficients for the `Type` of cars in the cars dataset gives you the same results as we did in class (i.e. the ybar's within group). 
+Verify that the OLS coefficients for the `Type` of cars in the cars dataset gives you the same results as we did in class (i.e. the ybar's within group).
 
 ```{r}
-#TO-DO
+cars = MASS::Cars93
+anova_mod = lm(Price ~ Type, cars)
+print(coef(anova_mod))
 ```
-
 
 Create a prediction method `g` that takes in a vector `x_star` and the dataset $\mathbb{D}$ i.e. `X` and `y` and returns the OLS predictions. Let `X` be a matrix with with p columns representing the feature measurements for each of the n units
 
@@ -586,6 +569,3 @@ g = function(x_star, X, y){
   x_start %*% model$b
 }
 ```
-
-
-
