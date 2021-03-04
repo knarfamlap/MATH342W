@@ -130,7 +130,23 @@ pacman::p_load(optimx)
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1) {
+  # check that Xinput and y_binary share the same number of rows
   
+  # initialize a weight vector with dimensions p + 1. Where p is the number of cols in Xinput
+  # with the bias term at the first position
+  
+  # initialize the sum of hinge loss function
+  
+  # iterate through Xinput and y_binary in the row direction
+  # calculate the  sum of hinge loss
+  # find the argmin of (1 / n) * sum_hinrors + lge_erambda * norm_vec(w)
+  # you can do this by taking the gradient w.r.t w and setting it equal to zero
+  # update the weight matrix with an optimizer
+  
+  # repeat the previous MAX_ITER times
+  
+  
+  # return the weight vector 
 }
 
 ```
@@ -156,11 +172,11 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
     stop("X and y must have the same number of rows") 
   }
   # check that X is numeric and integer
-  if (class(Xinput)  != "numeric" & class(Xinput) != "integer") {
+  if (class(Xinput[, 1])  != "numeric" & class(Xinput[, 1]) != "integer") {
     stop("x needs to be numeric")
   }
   # check that y is numeric and integer
-  if (class(y_binary)  != "numeric" & class(y_binary) != "integer") {
+  if (class(y_binary[1, ])  != "numeric" & class(y_binary[1, ]) != "integer") {
     stop("y needs to be numeric")
   }
   # check that there are more than 2 rows
@@ -170,17 +186,23 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
   
   
   w = rep(1, p)
-  w = c(0, w)
+  b = 0
   
-  cost_fn = function(w) {
+  cost_fn = function(w, b) {
       norm_vec = function(x) sqrt(sum(x^2))
-      condition = (1/2) - (y_binary - (1/2)) * (w * Xinput - w[0])
-      sum_hinge_errors = sum(max(0, condition))
+      y_part = y_binary - 0.5
+      x_part = w * Xinput
+      
+      d = 0.5 - y_part * (x_part - b)
+      
+      sum_hinge_errors = sum(max(0, d))
       (1 / n) * sum_hinge_errors + lambda * norm_vec(w)
   }
+  
+  print(cost_fn(w, b))
    
   # return weight row vector with p + 1. Includes bias
-  optim_df = optimx(w, cost_fn, method="CG", itnmax=MAX_ITER)
+  optim_df = optimx(w, b, cost_fn, method="BFGS", itnmax=MAX_ITER)
   
   c(optim_df$p1, optim_df$p2, optim_df$p3)
 }
@@ -190,7 +212,7 @@ If you wrote code (the extra credit), run your function using the defaults and p
 
 ```{r}
 X_simple_feature_matrix = as.matrix(cbind(Xy_simple$first_feature, Xy_simple$second_feature))
-y_binary = as.numeric(Xy_simple$response)
+y_binary = as.matrix(as.numeric(Xy_simple$response))
 
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
 
@@ -200,6 +222,9 @@ my_svm_line = geom_abline(
     slope = -svm_model_weights[2] / svm_model_weights[3], 
     color = "brown")
 simple_viz_obj  + my_svm_line
+
+
+?optimx
 ```
 
 Is this the same as what the `e1071` implementation returned? Why or why not?
