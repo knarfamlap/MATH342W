@@ -94,30 +94,48 @@ Project the $y$ vector onto each column of the $X$ matrix and test if the sum of
 proj_1 = (X[, 1] %*% t(X[, 1]) / as.numeric((t(X[, 1])%*% X[, 1])))%*% y
 proj_2 = (X[, 2] %*% t(X[, 2]) / as.numeric((t(X[, 1])%*% X[, 1])))%*% y
 proj_3 = (X[, 3] %*% t(X[, 3]) / as.numeric((t(X[, 1])%*% X[, 1])))%*% y
+
+
+expect_equal(proj_1 + proj_2 + proj_3, y_hat, tol=1e4)
 ```
 
 Construct the design matrix without an intercept, $X$, without using `model.matrix`.
 
 ```{r}
-#TO-DO
+X_no_inter = cbind(as.numeric(iris$Species == "versicolor"), as.numeric(iris$Species == "virginica"))
 ```
 
 Find the OLS estimates using this design matrix. It should be the sample averages of the petal lengths within species.
 
 ```{r}
-#TO-DO
+setosa = which(X_no_inter[, 1] == 0 & X[, 2] == 0)
+versicolor = which(X_no_inter[, 1] == 1)
+virginica = which(X_no_inter[, 2] == 1)
+
+mean(y[setosa])
+mean(y[versicolor])
+mean(y[virginica])
 ```
+
 
 Verify the hat matrix constructed from this design matrix is the same as the hat matrix constructed from the design matrix with the intercept. (Fact: orthogonal projection matrices are unique).
 
 ```{r}
-#TO-DO
+H_no_inter = X_no_inter %*% solve(t(X_no_inter) %*% X_no_inter) %*% t(X_no_inter) 
+
+expect_equal(H_no_inter, H)
 ```
 
 Project the $y$ vector onto each column of the $X$ matrix and test if the sum of these projections is the same as yhat.
 
 ```{r}
-#TO-DO
+proj_1 = (X_no_inter[, 1] %*% t(X_no_inter[, 1]) / as.numeric((t(X_no_inter[, 1])%*% X_no_inter[, 1])))%*% y
+proj_2 =   (X_no_inter[, 2] %*% t(X_no_inter[, 2]) / as.numeric((t(X_no_inter[, 2])%*% X_no_inter[, 2])))%*% y
+
+yhat = H_no_inter %*% y
+
+expect_equal(proj_1 + proj_2, y_hat)
+
 ```
 
 Convert this design matrix into $Q$, an orthonormal matrix.
