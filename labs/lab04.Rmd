@@ -2,7 +2,7 @@
 title: "Lab 4"
 author: "Frank Palma Gomez"
 output: pdf_document
-date: "11:59PM March 10, 2021"
+date: "11:59PM March 11, 2021"
 ---
 
 Load up the famous iris dataset. We are going to do a different prediction problem. Imagine the only input x is Species and you are trying to predict y which is Petal.Length. A reasonable prediction is the average petal length within each Species. Prove that this is the OLS model by fitting an appropriate `lm` and then using the predict function to verify.
@@ -102,19 +102,17 @@ expect_equal(proj_1 + proj_2 + proj_3, y_hat, tol=1e4)
 Construct the design matrix without an intercept, $X$, without using `model.matrix`.
 
 ```{r}
-X_no_inter = cbind(as.numeric(iris$Species == "versicolor"), as.numeric(iris$Species == "virginica"))
+X_no_inter = cbind(as.numeric(iris$Species == "setosa"), as.numeric(iris$Species == "versicolor"), as.numeric(iris$Species == "virginica"))
 ```
 
 Find the OLS estimates using this design matrix. It should be the sample averages of the petal lengths within species.
 
 ```{r}
-setosa = which(X_no_inter[, 1] == 0 & X[, 2] == 0)
-versicolor = which(X_no_inter[, 1] == 1)
-virginica = which(X_no_inter[, 2] == 1)
+b = solve(t(X_no_inter) %*% X_no_inter) %*% t(X_no_inter) %*% y
 
-mean(y[setosa])
-mean(y[versicolor])
-mean(y[virginica])
+expect_equal(b[1], mean(y[iris$Species == "setosa"]))
+expect_equal(b[2], mean(y[iris$Species == "versicolor"]))
+expect_equal(b[3], mean(y[iris$Species == "virginica"]))
 ```
 
 
@@ -131,47 +129,66 @@ Project the $y$ vector onto each column of the $X$ matrix and test if the sum of
 ```{r}
 proj_1 = (X_no_inter[, 1] %*% t(X_no_inter[, 1]) / as.numeric((t(X_no_inter[, 1])%*% X_no_inter[, 1])))%*% y
 proj_2 =   (X_no_inter[, 2] %*% t(X_no_inter[, 2]) / as.numeric((t(X_no_inter[, 2])%*% X_no_inter[, 2])))%*% y
+proj_3 =   (X_no_inter[, 3] %*% t(X_no_inter[, 3]) / as.numeric((t(X_no_inter[, 3])%*% X_no_inter[, 3])))%*% y
 
 yhat = H_no_inter %*% y
 
-expect_equal(proj_1 + proj_2, y_hat)
+expect_equal(proj_1 + proj_2 + proj_3, y_hat)
 
 ```
 
 Convert this design matrix into $Q$, an orthonormal matrix.
 
 ```{r}
-#TO-DO
+qrX_no_inter = qr(X_no_inter)
+Q = qr.Q(qrX_no_inter)
+R = qr.R(qrX_no_inter)
 ```
 
 Project the $y$ vector onto each column of the $Q$ matrix and test if the sum of these projections is the same as yhat.
 
 ```{r}
-#TO-DO
+Qt = t(Q)
+yhat_via_Q = Q %*% Qt %*% y
+expect_equal(c(yhat), c(yhat_via_Q))
 ```
 
 Find the $p=3$ linear OLS estimates if $Q$ is used as the design matrix using the `lm` method. Is the OLS solution the same as the OLS solution for $X$?
 
+NO is not the same because each dimension is only one piece of the SSR and only one piece of R^2 as well. 
+
 ```{r}
-#TO-DO
+modQ = lm(y ~ Q) 
+modX_no_inter = lm(y ~ X_no_inter)
+coef(modQ)
+coef(modX_no_inter)
 ```
 
 Use the predict function and ensure that the predicted values are the same for both linear models: the one created with $X$ as its design matrix and the one created with $Q$ as its design matrix.
 
 ```{r}
-#TO-DO
+expect_equal(predict(modX_no_inter, data.frame(X_no_inter)), predict(modQ, data.frame(X_no_inter)))
 ```
 
 
 Clear the workspace and load the boston housing data and extract $X$ and $y$. The dimensions are $n=506$ and $p=13$. Create a matrix that is $(p + 1) \times (p + 1)$ full of NA's. Label the columns the same columns as X. Do not label the rows. For the first row, find the OLS estimate of the $y$ regressed on the first column only and put that in the first entry. For the second row, find the OLS estimates of the $y$ regressed on the first and second columns of $X$ only and put them in the first and second entries. For the third row, find the OLS estimates of the $y$ regressed on the first, second and third columns of $X$ only and put them in the first, second and third entries, etc. For the last row, fill it with the full OLS estimates.
 
 ```{r}
-#TO-DO
+y = MASS::Boston$medv
+X = as.matrix(cbind(1, MASS::Boston[, 1:13])) 
+
+n = nrow(X)
+p_plus_one = ncol(X) 
+
+NA_matrix = as.matrix(NA, nrows = p_plus_one, ncols = p_plus_one)
+NA_matrix
+
+p_plus_one
 ```
 
 Why are the estimates changing from row to row as you add in more predictors?
 
-#TO-DO
+Because every time you're adding a feature and therefore you're increasing your SSR
 
 Create a vector of length $p+1$ and compute the R^2 values for each of the above models. 
 
@@ -181,4 +198,4 @@ Create a vector of length $p+1$ and compute the R^2 values for each of the above
 
 Is R^2 monotonically increasing? Why?
 
-#TO-DO
+#
