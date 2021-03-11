@@ -175,15 +175,25 @@ Clear the workspace and load the boston housing data and extract $X$ and $y$. Th
 
 ```{r}
 y = MASS::Boston$medv
-X = as.matrix(cbind(1, MASS::Boston[, 1:13])) 
+X = as.matrix(MASS::Boston[, 1:13])
 
 n = nrow(X)
-p_plus_one = ncol(X) 
+p_plus_one = ncol(X)
 
-NA_matrix = as.matrix(NA, nrows = p_plus_one, ncols = p_plus_one)
+NA_matrix = matrix(data=NA, nrow = p_plus_one, ncol = p_plus_one)
+colnames(NA_matrix) = colnames(X)
+
+X_df = data.frame(X)
+for (i in 1:p_plus_one) {
+  cols = colnames(X_df)[1:i]
+  mod = lm(y ~ ., X_df[cols])
+  coefs = coef(mod)
+  for (j in 1:length(coefs)) {
+    NA_matrix[i, j-1] = coefs[j]
+  }
+}
+
 NA_matrix
-
-p_plus_one
 ```
 
 Why are the estimates changing from row to row as you add in more predictors?
@@ -198,4 +208,4 @@ Create a vector of length $p+1$ and compute the R^2 values for each of the above
 
 Is R^2 monotonically increasing? Why?
 
-#
+Every dimension you add, you explain a little more variance with the model. 
